@@ -1,10 +1,10 @@
 use clap::Parser;
 use dypdl::prelude::*;
 use dypdl_heuristic_search::{
-    create_caasdy, create_dual_bound_cabs, BeamSearchParameters, CabsParameters, FEvaluatorType,
-    Parameters,
+    BeamSearchParameters, CabsParameters, FEvaluatorType, Parameters, create_caasdy,
+    create_dual_bound_cabs,
 };
-use golomb_ruler::{Args, SolverChoice, KNOWN_OPTIMAL_COSTS};
+use golomb_ruler::{Args, KNOWN_OPTIMAL_COSTS, SolverChoice};
 use rpid::timer::Timer;
 use std::iter;
 use std::rc::Rc;
@@ -52,7 +52,7 @@ fn main() {
     let lower_bounds = model.add_table_1d("lower_bounds", lower_bounds).unwrap();
 
     for i in 1..=(n * n + 1) {
-        let mut add_mark = Transition::new(format!("{}", i));
+        let mut add_mark = Transition::new(format!("{i}"));
         let last_distance = i - last_mark;
         add_mark
             .set_cost(element_to_integer.element(last_distance.clone()) + IntegerExpression::Cost);
@@ -85,7 +85,7 @@ fn main() {
                 & Condition::comparison_e(
                     ComparisonOperator::Le,
                     i,
-                    (n * n + 1) / 2 - lower_bounds.element(n / 2 - n_marks),
+                    (n * n).div_ceil(2) - lower_bounds.element(n / 2 - n_marks),
                 ))
                 | Condition::comparison_e(ComparisonOperator::Ge, n_marks, n / 2)
                     & Condition::comparison_e(
@@ -131,12 +131,12 @@ fn main() {
                 beam_search_parameters,
                 ..Default::default()
             };
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Plus)
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Plus)
         }

@@ -49,13 +49,13 @@ impl Instance {
 
         for &j in solution {
             if j >= n {
-                println!("Invalid job index: {}", j);
+                println!("Invalid job index: {j}");
 
                 return false;
             }
 
             if scheduled[j] {
-                println!("Job {} is scheduled more than once", j);
+                println!("Job {j} is scheduled more than once");
 
                 return false;
             }
@@ -66,7 +66,7 @@ impl Instance {
         }
 
         if recomputed_cost != cost {
-            println!("Invalid cost: {} != {}", cost, recomputed_cost);
+            println!("Invalid cost: {cost} != {recomputed_cost}");
 
             return false;
         }

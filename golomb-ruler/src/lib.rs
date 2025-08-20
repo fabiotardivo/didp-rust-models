@@ -10,9 +10,8 @@ pub const KNOWN_OPTIMAL_COSTS: [usize; 29] = [
 pub fn validate(n: usize, marks: &[usize], length: usize) -> bool {
     if marks.len() != n {
         println!(
-            "The number of marks {} is different from {}",
-            marks.len(),
-            n
+            "The number of marks {len} is different from {n}",
+            len = marks.len(),
         );
 
         return false;
@@ -22,10 +21,10 @@ pub fn validate(n: usize, marks: &[usize], length: usize) -> bool {
     let mut max_distance = 0;
 
     for (&i, &j) in marks.iter().tuple_combinations() {
-        let distance = if i > j { i - j } else { j - i };
+        let distance = i.abs_diff(j);
 
         if distance_set.contains(distance) {
-            println!("Distance {} is repeated", distance);
+            println!("Distance {distance} is repeated");
 
             return false;
         }
@@ -38,10 +37,7 @@ pub fn validate(n: usize, marks: &[usize], length: usize) -> bool {
     }
 
     if max_distance != length {
-        println!(
-            "The maximum distance {} is different from length {}",
-            max_distance, length
-        );
+        println!("The maximum distance {max_distance} is different from length {length}",);
 
         return false;
     }

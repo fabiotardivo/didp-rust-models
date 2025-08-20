@@ -61,6 +61,7 @@ struct OptwState {
 impl Dp for Optw {
     type State = OptwState;
     type CostType = i32;
+    type Label = usize;
 
     fn get_target(&self) -> Self::State {
         let mut unvisited = FixedBitSet::with_capacity(self.instance.vertices.len());
@@ -76,7 +77,7 @@ impl Dp for Optw {
     fn get_successors(
         &self,
         state: &Self::State,
-    ) -> impl IntoIterator<Item = (Self::State, Self::CostType, usize)> {
+    ) -> impl IntoIterator<Item = (Self::State, Self::CostType, Self::Label)> {
         let n = self.instance.vertices.len();
 
         for next in state.unvisited.ones() {
@@ -204,11 +205,11 @@ impl Bound for Optw {
                         None
                     }
                 });
-        let dantzig_bound_from = algorithms::compute_fractional_knapsack_profit(
+        let dantzig_bound_from = (algorithms::compute_fractional_knapsack_profit(
             capacity_from,
             sorted_weight_value_pairs_from,
-            self.epsilon,
-        ) as i32;
+        ) + self.epsilon)
+            .floor() as i32;
 
         let capacity_to = self.instance.closing[0] - state.time - self.min_distance_to[0];
         let sorted_weight_value_pairs_to =
@@ -221,11 +222,11 @@ impl Bound for Optw {
                         None
                     }
                 });
-        let dantzig_bound_to = algorithms::compute_fractional_knapsack_profit(
+        let dantzig_bound_to = (algorithms::compute_fractional_knapsack_profit(
             capacity_to,
             sorted_weight_value_pairs_to,
-            self.epsilon,
-        ) as i32;
+        ) + self.epsilon)
+            .floor() as i32;
 
         Some(cmp::min(dantzig_bound_from, dantzig_bound_to))
     }
@@ -247,12 +248,12 @@ fn main() {
     let solution = match args.solver {
         SolverChoice::Cabs => {
             let cabs_parameters = CabsParameters::default();
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_cabs(optw, parameters, cabs_parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_astar(optw, parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }

@@ -124,12 +124,12 @@ fn main() {
                 beam_search_parameters,
                 ..Default::default()
             };
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Plus)
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Plus)
         }

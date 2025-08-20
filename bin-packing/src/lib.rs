@@ -43,13 +43,13 @@ impl Instance {
 
         for &i in solution {
             if i >= n {
-                println!("Invalid item index: {}", i);
+                println!("Invalid item index: {i}");
 
                 return false;
             }
 
             if packed[i] {
-                println!("Item {} is packed more than once", i);
+                println!("Item {i} is packed more than once");
 
                 return false;
             }
@@ -66,7 +66,7 @@ impl Instance {
         }
 
         if recomputed_cost != cost {
-            println!("Invalid cost: {} != {}", cost, recomputed_cost);
+            println!("Invalid cost: {cost} != {recomputed_cost}");
 
             return false;
         }
@@ -88,7 +88,7 @@ impl Instance {
             capacity -= self.weights[i];
         }
 
-        println!("Solution: {:?}", bins);
+        println!("Solution: {bins:?}");
     }
 }
 

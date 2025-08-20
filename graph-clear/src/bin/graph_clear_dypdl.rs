@@ -1,8 +1,8 @@
 use clap::Parser;
 use dypdl::prelude::*;
 use dypdl_heuristic_search::{
-    create_caasdy, create_dual_bound_cabs, BeamSearchParameters, CabsParameters, FEvaluatorType,
-    Parameters,
+    BeamSearchParameters, CabsParameters, FEvaluatorType, Parameters, create_caasdy,
+    create_dual_bound_cabs,
 };
 use graph_clear::{Args, Instance, SolverChoice};
 use rpid::timer::Timer;
@@ -40,15 +40,18 @@ fn main() {
     let edge_weights = model
         .add_table_2d("edge weights", instance.edge_weights.clone())
         .unwrap();
+    let contaminated = model
+        .add_set_state_function("contaminated", !clean)
+        .unwrap();
 
     for (i, &wi) in instance.node_weights.iter().enumerate() {
-        let mut sweep = Transition::new(format!("{}", i));
+        let mut sweep = Transition::new(format!("{i}"));
         sweep.set_cost(IntegerExpression::max(
-            wi + edge_weight_sum[i] + edge_weights.sum(clean, (!clean).remove(i)),
+            wi + edge_weight_sum[i] + edge_weights.sum(clean, contaminated.clone().remove(i)),
             IntegerExpression::Cost,
         ));
         sweep.add_effect(clean, clean.add(i)).unwrap();
-        sweep.add_precondition(!clean.contains(i));
+        sweep.add_precondition(contaminated.clone().contains(i));
 
         model.add_forward_transition(sweep).unwrap();
     }
@@ -80,12 +83,12 @@ fn main() {
                 beam_search_parameters,
                 ..Default::default()
             };
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Max)
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Max)
         }
@@ -101,7 +104,7 @@ fn main() {
             .iter()
             .map(|t| t.get_full_name())
             .collect::<Vec<_>>();
-        println!("Schedule: {}", schedule.join(" "));
+        println!("Schedule: {schedule}", schedule = schedule.join(" "));
         let schedule = schedule
             .into_iter()
             .map(|t| t.parse().unwrap())

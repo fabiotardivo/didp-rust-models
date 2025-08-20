@@ -2,8 +2,8 @@ use bin_packing::{Args, Instance, SolverChoice};
 use clap::Parser;
 use dypdl::prelude::*;
 use dypdl_heuristic_search::{
-    create_caasdy, create_dual_bound_cabs, BeamSearchParameters, CabsParameters, FEvaluatorType,
-    Parameters,
+    BeamSearchParameters, CabsParameters, FEvaluatorType, Parameters, create_caasdy,
+    create_dual_bound_cabs,
 };
 use rpid::timer::Timer;
 use std::rc::Rc;
@@ -36,8 +36,20 @@ fn main() {
         .add_element_resource_variable("bin_number", item, true, 0)
         .unwrap();
 
+    let mut no_available_item = Condition::Constant(true);
+
+    for (j, &wj) in instance.weights.iter().enumerate() {
+        let condition =
+            !unpacked.contains(j) | Condition::comparison_i(ComparisonOperator::Gt, wj, remaining);
+        no_available_item = no_available_item & condition;
+    }
+
+    let no_available_item = model
+        .add_boolean_state_function("no available item", no_available_item)
+        .unwrap();
+
     for (i, &wi) in instance.weights.iter().enumerate() {
-        let mut pack = Transition::new(format!("{}", i));
+        let mut pack = Transition::new(format!("{i}"));
         pack.set_cost(IntegerExpression::Cost);
 
         pack.add_effect(remaining, remaining - wi).unwrap();
@@ -57,7 +69,7 @@ fn main() {
 
         model.add_forward_transition(pack).unwrap();
 
-        let mut open_and_pack = Transition::new(format!("{}", i));
+        let mut open_and_pack = Transition::new(format!("{i}"));
         open_and_pack.set_cost(1 + IntegerExpression::Cost);
 
         open_and_pack
@@ -71,26 +83,12 @@ fn main() {
             .unwrap();
 
         open_and_pack.add_precondition(unpacked.contains(i));
-        open_and_pack.add_precondition(Condition::comparison_i(
-            ComparisonOperator::Gt,
-            wi,
-            remaining,
-        ));
         open_and_pack.add_precondition(Condition::comparison_e(
             ComparisonOperator::Le,
             bin_number,
             i,
         ));
-
-        for (j, &wj) in instance.weights.iter().enumerate() {
-            if j == i {
-                continue;
-            }
-
-            let weight_condition = Condition::comparison_i(ComparisonOperator::Gt, wj, remaining);
-
-            open_and_pack.add_precondition(!unpacked.contains(j) | weight_condition.clone());
-        }
+        open_and_pack.add_precondition(no_available_item.clone());
 
         model.add_forward_forced_transition(open_and_pack).unwrap();
     }
@@ -172,12 +170,12 @@ fn main() {
                 beam_search_parameters,
                 ..Default::default()
             };
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Plus)
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Plus)
         }

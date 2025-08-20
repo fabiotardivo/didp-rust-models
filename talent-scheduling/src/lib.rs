@@ -43,7 +43,7 @@ impl Instance {
 
     pub fn validate(&self, scenes: &[usize], cost: i32) -> bool {
         if scenes.len() != self.scene_to_duration.len() {
-            println!("Invalid number of scenes: {}", scenes.len());
+            println!("Invalid number of scenes: {len}", len = scenes.len());
 
             return false;
         }
@@ -56,13 +56,13 @@ impl Instance {
 
         for (i, &scene) in scenes.iter().enumerate() {
             if scene >= self.scene_to_duration.len() {
-                println!("Invalid scene index: {}", scene);
+                println!("Invalid scene index: {scene}");
 
                 return false;
             }
 
             if shot[scene] {
-                println!("Scene {} is shot twice", scene);
+                println!("Scene {scene} is shot twice");
 
                 return false;
             }
@@ -88,7 +88,7 @@ impl Instance {
         }
 
         if recomputed_cost != cost {
-            println!("Invalid cost: {} != {}", cost, recomputed_cost);
+            println!("Invalid cost: {cost} != {recomputed_cost}");
 
             return false;
         }

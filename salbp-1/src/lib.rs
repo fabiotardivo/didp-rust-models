@@ -98,13 +98,13 @@ impl Instance {
 
         for &task in solution {
             if task >= self.task_times.len() {
-                println!("Invalid task id: {}", task);
+                println!("Invalid task id: {task}");
 
                 return false;
             }
 
             if scheduled.contains(task) {
-                println!("Task {} is already scheduled", task);
+                println!("Task {task} is already scheduled");
 
                 return false;
             }
@@ -115,10 +115,7 @@ impl Instance {
                 .collect::<Vec<usize>>();
 
             if !unsatisfied.is_empty() {
-                println!(
-                    "Task {} has unsatisfied predecessors: {:?}",
-                    task, unsatisfied
-                );
+                println!("Task {task} has unsatisfied predecessors: {unsatisfied:?}",);
 
                 return false;
             }
@@ -133,15 +130,15 @@ impl Instance {
         }
 
         if recomputed_cost != cost {
-            println!("Invalid cost: {} != {}", cost, recomputed_cost);
+            println!("Invalid cost: {cost} != {recomputed_cost}");
 
             return false;
         }
 
         if scheduled.count_ones(..) != self.task_times.len() {
             println!(
-                "Tasks: {:?} are not scheduled",
-                scheduled.ones().map(|i| i + 1).collect::<Vec<_>>()
+                "Tasks: {not_scheduled:?} are not scheduled",
+                not_scheduled = scheduled.ones().map(|i| i + 1).collect::<Vec<_>>()
             );
 
             return false;
@@ -164,7 +161,7 @@ impl Instance {
             remaining -= self.task_times[i];
         }
 
-        println!("Schedule: {:?}", stations);
+        println!("Schedule: {stations:?}");
     }
 }
 

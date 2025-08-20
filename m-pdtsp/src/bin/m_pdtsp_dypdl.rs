@@ -1,8 +1,8 @@
 use clap::Parser;
 use dypdl::prelude::*;
 use dypdl_heuristic_search::{
-    create_caasdy, create_dual_bound_cabs, BeamSearchParameters, CabsParameters, FEvaluatorType,
-    Parameters,
+    BeamSearchParameters, CabsParameters, FEvaluatorType, Parameters, create_caasdy,
+    create_dual_bound_cabs,
 };
 use m_pdtsp::{Args, RoundedInstance, SolverChoice};
 use rpid::{algorithms, timer::Timer};
@@ -75,7 +75,7 @@ fn main() {
     let distances = model.add_table_2d("distances", distances).unwrap();
 
     for (next, &d) in demands.iter().enumerate() {
-        let mut visit = Transition::new(format!("{}", next));
+        let mut visit = Transition::new(format!("{next}"));
         visit.set_cost(distances.element(current, next) + IntegerExpression::Cost);
 
         visit.add_effect(unvisited, unvisited.remove(next)).unwrap();
@@ -126,12 +126,12 @@ fn main() {
                 beam_search_parameters,
                 ..Default::default()
             };
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Plus)
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Plus)
         }

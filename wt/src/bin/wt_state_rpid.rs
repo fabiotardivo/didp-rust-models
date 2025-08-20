@@ -37,6 +37,7 @@ impl From<Instance> for Wt {
 impl Dp for Wt {
     type State = WtState;
     type CostType = i32;
+    type Label = usize;
 
     fn get_target(&self) -> Self::State {
         Self::State {
@@ -48,7 +49,7 @@ impl Dp for Wt {
     fn get_successors(
         &self,
         state: &Self::State,
-    ) -> impl IntoIterator<Item = (Self::State, Self::CostType, usize)> {
+    ) -> impl IntoIterator<Item = (Self::State, Self::CostType, Self::Label)> {
         state.scheduled.zeroes().filter_map(move |i| {
             if self.predecessors[i].is_subset(&state.scheduled) {
                 let mut scheduled = state.scheduled.clone();
@@ -107,12 +108,12 @@ fn main() {
     let solution = match args.solver {
         SolverChoice::Cabs => {
             let cabs_parameters = CabsParameters::default();
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_cabs(wt, parameters, cabs_parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_astar(wt, parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
@@ -123,10 +124,10 @@ fn main() {
         let schedule = solution
             .transitions
             .iter()
-            .map(|t| format!("{}", t))
+            .map(|t| format!("{t}"))
             .collect::<Vec<_>>()
             .join(" ");
-        println!("Schedule: {}", schedule);
+        println!("Schedule: {schedule}");
 
         if instance.validate(&solution.transitions, cost) {
             println!("The solution is valid.");

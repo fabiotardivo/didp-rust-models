@@ -73,25 +73,25 @@ impl Instance {
     pub fn validate(&self, independent_set: &[usize]) -> bool {
         for (&i, &j) in independent_set.iter().tuple_combinations() {
             if i >= self.n {
-                println!("Node {} is out of bounds", i);
+                println!("Node {i} is out of bounds");
 
                 return false;
             }
 
             if j >= self.n {
-                println!("Node {} is out of bounds", j);
+                println!("Node {j} is out of bounds");
 
                 return false;
             }
 
             if i == j {
-                println!("Node {} is repeated", i);
+                println!("Node {i} is repeated");
 
                 return false;
             }
 
             if self.adjacency_list[i].contains(&j) {
-                println!("Nodes {} and {} are adjacent", i, j);
+                println!("Nodes {i} and {j} are adjacent");
 
                 return false;
             }

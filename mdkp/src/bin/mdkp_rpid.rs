@@ -79,6 +79,7 @@ struct MdkpState {
 impl Dp for Mdkp {
     type State = MdkpState;
     type CostType = i32;
+    type Label = bool;
 
     fn get_target(&self) -> Self::State {
         MdkpState {
@@ -90,7 +91,7 @@ impl Dp for Mdkp {
     fn get_successors(
         &self,
         state: &Self::State,
-    ) -> impl IntoIterator<Item = (Self::State, Self::CostType, usize)> {
+    ) -> impl IntoIterator<Item = (Self::State, Self::CostType, Self::Label)> {
         let mut remaining = state.remaining.clone();
 
         for (j, (&r, ws)) in state
@@ -109,7 +110,7 @@ impl Dp for Mdkp {
                     remaining,
                 };
 
-                return vec![(successor, 0, 1)];
+                return vec![(successor, 0, false)];
             }
 
             remaining[j] -= ws[state.current];
@@ -125,8 +126,8 @@ impl Dp for Mdkp {
         };
 
         vec![
-            (successor_1, self.instance.profits[state.current], 0),
-            (successor_2, 0, 1),
+            (successor_1, self.instance.profits[state.current], true),
+            (successor_2, 0, false),
         ]
     }
 
@@ -190,12 +191,12 @@ fn main() {
     let solution = match args.solver {
         SolverChoice::Cabs => {
             let cabs_parameters = CabsParameters::default();
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_cabs(mdkp, parameters, cabs_parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_astar(mdkp, parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
@@ -207,7 +208,7 @@ fn main() {
             .transitions
             .iter()
             .enumerate()
-            .filter_map(|(i, &x)| if x == 0 { Some(i) } else { None })
+            .filter_map(|(i, &x)| if x { Some(i) } else { None })
             .collect::<Vec<_>>();
         println!(
             "Packed items: {}",

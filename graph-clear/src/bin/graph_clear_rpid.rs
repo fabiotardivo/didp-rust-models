@@ -35,6 +35,7 @@ impl From<Instance> for GraphClear {
 impl Dp for GraphClear {
     type State = FixedBitSet;
     type CostType = i32;
+    type Label = usize;
 
     fn get_target(&self) -> FixedBitSet {
         FixedBitSet::with_capacity(self.instance.node_weights.len())
@@ -43,7 +44,7 @@ impl Dp for GraphClear {
     fn get_successors(
         &self,
         clean: &Self::State,
-    ) -> impl IntoIterator<Item = (Self::State, Self::CostType, usize)> {
+    ) -> impl IntoIterator<Item = (Self::State, Self::CostType, Self::Label)> {
         clean.zeroes().map(|i| {
             let mut new_state = clean.clone();
             new_state.insert(i);
@@ -115,12 +116,12 @@ fn main() {
     let solution = match args.solver {
         SolverChoice::Cabs => {
             let cabs_parameters = CabsParameters::default();
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_cabs(graph_clear, parameters, cabs_parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_astar(graph_clear, parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
@@ -131,10 +132,10 @@ fn main() {
         let schedule = solution
             .transitions
             .iter()
-            .map(|t| format!("{}", t))
+            .map(|t| format!("{t}"))
             .collect::<Vec<_>>()
             .join(" ");
-        println!("Schedule: {}", schedule);
+        println!("Schedule: {schedule}");
 
         if instance.validate(&solution.transitions, cost) {
             println!("The solution is valid.");

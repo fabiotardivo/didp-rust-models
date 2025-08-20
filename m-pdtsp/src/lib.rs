@@ -53,7 +53,11 @@ impl RoundedInstance {
         let n = self.nodes.len();
 
         if tours.len() != n - 2 {
-            println!("Invalid tour length: {} != {}", tours.len(), n - 2);
+            println!(
+                "Invalid tour length: {len} != {expected}",
+                len = tours.len(),
+                expected = n - 2
+            );
 
             return false;
         }
@@ -65,13 +69,13 @@ impl RoundedInstance {
 
         for &next in tours {
             if next >= self.nodes.len() - 1 {
-                println!("Invalid node index: {}", next);
+                println!("Invalid node index: {next}");
 
                 return false;
             }
 
             if visited[next] {
-                println!("Visited node twice: {}", next);
+                println!("Visited node twice: {next}");
 
                 return false;
             }
@@ -79,7 +83,7 @@ impl RoundedInstance {
             if let Some(d) = self.distances[current][next] {
                 recomputed_cost += d;
             } else {
-                println!("{} is not connected to {}", current, next);
+                println!("{current} is not connected to {next}");
 
                 return false;
             }
@@ -90,7 +94,7 @@ impl RoundedInstance {
                 *l += d;
 
                 if *l < 0 {
-                    println!("Negative load {} in dimension {} at {}", l, i, next);
+                    println!("Negative load {l} in dimension {i} at {next}");
 
                     return false;
                 }
@@ -100,8 +104,8 @@ impl RoundedInstance {
 
             if total_load > self.capacity {
                 println!(
-                    "Capacity violation: {} > {} at {}",
-                    total_load, self.capacity, next
+                    "Capacity violation: {total_load} > {capacity} at {next}",
+                    capacity = self.capacity
                 );
 
                 return false;
@@ -116,13 +120,13 @@ impl RoundedInstance {
         if let Some(d) = self.distances[current][goal] {
             recomputed_cost += d;
         } else {
-            println!("{} is not connected to {}", current, goal);
+            println!("{current} is not connected to {goal}");
 
             return false;
         }
 
         if cost != recomputed_cost {
-            println!("Invalid cost: {} != {}", cost, recomputed_cost);
+            println!("Invalid cost: {cost} != {recomputed_cost}");
 
             return false;
         }
@@ -132,8 +136,9 @@ impl RoundedInstance {
 
     pub fn print_solution(&self, tour: &[usize]) {
         println!(
-            "Tour: {}",
-            tour.iter()
+            "Tour: {tour}",
+            tour = tour
+                .iter()
                 .map(|&i| self.nodes[i].to_string())
                 .collect_vec()
                 .join(" ")
