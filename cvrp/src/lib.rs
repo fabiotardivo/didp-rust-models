@@ -64,20 +64,19 @@ impl RoundedInstance {
     pub fn validate(&self, tours: &[Vec<usize>], cost: i32) -> bool {
         if tours.len() > self.n_vehicles {
             println!(
-                "Invalid number of vehicles {} > {}",
-                tours.len(),
-                self.n_vehicles
+                "Invalid number of vehicles {len} > {n_vehicles}",
+                len = tours.len(),
+                n_vehicles = self.n_vehicles,
             );
 
             return false;
         }
 
-        if tours.iter().map(|t| t.len()).sum::<usize>() != self.nodes.len() - 1 {
-            println!(
-                "Invalid number of nodes {} != {}",
-                tours.iter().map(|t| t.len()).sum::<usize>(),
-                self.nodes.len() - 1
-            );
+        let actual_length = tours.iter().map(|t| t.len()).sum::<usize>();
+        let expected_length = self.nodes.len() - 1; // Exclude depot
+
+        if actual_length != expected_length {
+            println!("Invalid number of nodes {actual_length} != {expected_length}",);
 
             return false;
         }
@@ -91,13 +90,13 @@ impl RoundedInstance {
 
             for &node in t {
                 if node >= self.nodes.len() {
-                    println!("Invalid node {} visited by route {}", node, i);
+                    println!("Invalid node {node} visited by route {i}");
 
                     return false;
                 }
 
                 if let Some(j) = visited_by[node] {
-                    println!("Node {} visited twice by routes {} and {}", node, j, i);
+                    println!("Node {node} visited twice by routes {j} and {i}");
 
                     return false;
                 }
@@ -105,7 +104,7 @@ impl RoundedInstance {
                 if let Some(c) = self.distances[current][node] {
                     recomputed_cost += c;
                 } else {
-                    println!("Invalid edge {} -> {}", current, node);
+                    println!("Invalid edge {current} -> {node}");
 
                     return false;
                 }
@@ -114,8 +113,8 @@ impl RoundedInstance {
 
                 if load > self.capacity {
                     println!(
-                        "Vehicle load exceeded {} > {} at node {}",
-                        load, self.capacity, node
+                        "Vehicle load exceeded {load} > {capacity} at node {node}",
+                        capacity = self.capacity,
                     );
 
                     return false;
@@ -129,7 +128,7 @@ impl RoundedInstance {
                 if let Some(c) = self.distances[current][self.depot] {
                     recomputed_cost += c;
                 } else {
-                    println!("Invalid edge {} -> {}", current, self.depot);
+                    println!("Invalid edge {current} -> {depot}", depot = self.depot);
 
                     return false;
                 }
@@ -137,7 +136,7 @@ impl RoundedInstance {
         }
 
         if recomputed_cost != cost {
-            println!("Invalid cost {} != {}", recomputed_cost, cost);
+            println!("Invalid cost {cost} != {recomputed_cost}");
 
             return false;
         }

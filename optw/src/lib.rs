@@ -43,7 +43,7 @@ impl Instance {
         for i in 0..n {
             let line = lines
                 .next()
-                .ok_or(format!("failed to read the {}-th line", i))??;
+                .ok_or(format!("failed to read the {i}-th line"))??;
             let mut digits = line.split_whitespace();
             let v = digits.next().ok_or("failed to parse the vertex")?.parse()?;
             let x = digits
@@ -141,7 +141,7 @@ impl RoundedInstance {
 
         for &v in solution {
             if v > n {
-                println!("customer {} is not in the instance", v);
+                println!("customer {v} is not in the instance");
 
                 return false;
             }
@@ -150,8 +150,8 @@ impl RoundedInstance {
 
             if time > self.closing[v] {
                 println!(
-                    "customer {} is visited at time {} after closing time {}",
-                    v, time, self.closing[v]
+                    "customer {v} is visited at time {time} after closing time {closing_time}",
+                    closing_time = self.closing[v]
                 );
 
                 return false;
@@ -174,7 +174,7 @@ impl RoundedInstance {
         }
 
         if recomputed_profit != cost {
-            println!("Invalid profit {} != {}", recomputed_profit, cost);
+            println!("Invalid profit {cost} != {recomputed_profit}");
 
             return false;
         }
@@ -184,8 +184,8 @@ impl RoundedInstance {
 
     pub fn print_solution(&self, solution: &[usize]) {
         println!(
-            "Tour: {}",
-            solution
+            "Tour: {tour}",
+            tour = solution
                 .iter()
                 .map(|&i| self.vertices[i].to_string())
                 .collect::<Vec<_>>()

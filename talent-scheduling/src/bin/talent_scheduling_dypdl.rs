@@ -1,8 +1,8 @@
 use clap::Parser;
 use dypdl::prelude::*;
 use dypdl_heuristic_search::{
-    create_caasdy, create_dual_bound_cabs, BeamSearchParameters, CabsParameters, FEvaluatorType,
-    Parameters,
+    BeamSearchParameters, CabsParameters, FEvaluatorType, Parameters, create_caasdy,
+    create_dual_bound_cabs,
 };
 use rpid::timer::Timer;
 use std::rc::Rc;
@@ -74,43 +74,68 @@ fn main() {
         .add_table_1d("actor cost", simplified_instance.actor_to_cost.clone())
         .unwrap();
 
-    for i in 0..n {
-        let standby = scene_to_actors.union(m, remaining) & scene_to_actors.union(m, !remaining);
+    let arrived = model
+        .add_set_state_function("arrived", scene_to_actors.union(m, !remaining))
+        .unwrap();
+    let on_location = model
+        .add_set_state_function(
+            "on_location",
+            scene_to_actors.union(m, remaining) & arrived.clone(),
+        )
+        .unwrap();
 
-        let mut actor_equivalent_shoot = Transition::new(format!("{}", i));
+    for i in 0..n {
+        let mut actor_equivalent_shoot = Transition::new(format!("{i}"));
         actor_equivalent_shoot.set_cost(scene_to_base_cost.element(i) + IntegerExpression::Cost);
         actor_equivalent_shoot
             .add_effect(remaining, remaining.remove(i))
             .unwrap();
         actor_equivalent_shoot.add_precondition(remaining.contains(i));
         actor_equivalent_shoot
-            .add_precondition(scene_to_actors.element(i).is_subset(standby.clone()));
-        actor_equivalent_shoot.add_precondition(standby.is_subset(scene_to_actors.element(i)));
+            .add_precondition(scene_to_actors.element(i).is_equal(on_location.clone()));
 
         model
             .add_forward_forced_transition(actor_equivalent_shoot)
             .unwrap();
     }
 
-    for (i, &d) in simplified_instance.scene_to_duration.iter().enumerate() {
-        let standby = scene_to_actors.union(m, remaining) & scene_to_actors.union(m, !remaining);
-        let on_location = scene_to_actors.element(i) | standby;
+    let mut transition_ids = Vec::with_capacity(n);
+    let mut state_functions = Vec::with_capacity(n);
 
-        let mut shoot = Transition::new(format!("{}", i));
-        shoot.set_cost(d * actor_cost.sum(on_location) + IntegerExpression::Cost);
+    for (i, &d) in simplified_instance.scene_to_duration.iter().enumerate() {
+        let on_location_i = scene_to_actors.element(i) | on_location.clone();
+
+        let mut shoot = Transition::new(format!("{i}"));
+        shoot.set_cost(d * actor_cost.sum(on_location_i) + IntegerExpression::Cost);
         shoot.add_effect(remaining, remaining.remove(i)).unwrap();
         shoot.add_precondition(remaining.contains(i));
 
-        for &j in &scene_to_subsumption_candidates[i] {
-            shoot.add_precondition(
-                !remaining.contains(j)
-                    | !(scene_to_actors.element(j).is_subset(
-                        scene_to_actors.union(m, !remaining) | scene_to_actors.element(i),
-                    )),
-            );
-        }
+        let id = model.add_forward_transition(shoot).unwrap();
+        transition_ids.push(id);
 
-        model.add_forward_transition(shoot).unwrap();
+        let state_function = model
+            .add_set_state_function(
+                format!("arrived_or_playing_in_{i}"),
+                arrived.clone() | scene_to_actors.element(i),
+            )
+            .unwrap();
+        state_functions.push(state_function);
+    }
+
+    for i in 0..n {
+        for &j in &scene_to_subsumption_candidates[i] {
+            model
+                .add_transition_dominance_with_conditions(
+                    &transition_ids[j],
+                    &transition_ids[i],
+                    vec![
+                        scene_to_actors
+                            .element(j)
+                            .is_subset(state_functions[i].clone()),
+                    ],
+                )
+                .unwrap();
+        }
     }
 
     model.add_base_case(vec![remaining.is_empty()]).unwrap();
@@ -136,12 +161,12 @@ fn main() {
                 beam_search_parameters,
                 ..Default::default()
             };
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Plus)
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Plus)
         }

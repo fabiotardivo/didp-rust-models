@@ -37,17 +37,17 @@ impl Instance {
         }
 
         let mut clean = FixedBitSet::with_capacity(n);
-        let mut recomptued_cost = 0;
+        let mut recomputed_cost = 0;
 
         for &i in solution {
             if i >= self.node_weights.len() {
-                println!("Invalid node index: {}", i);
+                println!("Invalid node index: {i}");
 
                 return false;
             }
 
             if clean.contains(i) {
-                println!("Node {} is cleaned more than once", i);
+                println!("Node {i} is cleaned more than once");
 
                 return false;
             }
@@ -62,12 +62,12 @@ impl Instance {
                 }
             }
 
-            recomptued_cost = cmp::max(recomptued_cost, n_robots);
+            recomputed_cost = cmp::max(recomputed_cost, n_robots);
             clean.insert(i);
         }
 
-        if recomptued_cost != cost {
-            println!("Invalid cost: {} != {}", cost, recomptued_cost);
+        if recomputed_cost != cost {
+            println!("Invalid cost: {cost} != {recomputed_cost}");
 
             return false;
         }

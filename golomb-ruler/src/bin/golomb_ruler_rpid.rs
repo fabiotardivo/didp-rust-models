@@ -1,6 +1,6 @@
 use clap::Parser;
 use fixedbitset::FixedBitSet;
-use golomb_ruler::{Args, SolverChoice, KNOWN_OPTIMAL_COSTS};
+use golomb_ruler::{Args, KNOWN_OPTIMAL_COSTS, SolverChoice};
 use rpid::prelude::*;
 use rpid::{io, solvers, timer::Timer};
 use std::iter;
@@ -34,6 +34,7 @@ struct GolomobRulerState {
 impl Dp for GolomobRuler {
     type State = GolomobRulerState;
     type CostType = i32;
+    type Label = usize;
 
     fn get_target(&self) -> Self::State {
         let mut mark_set = FixedBitSet::with_capacity(self.n * self.n + 2);
@@ -54,7 +55,7 @@ impl Dp for GolomobRuler {
         let lb = state.last_mark + 1;
 
         let ub = if state.n_marks < self.n / 2 {
-            (self.n * self.n + 1) / 2 - self.lower_bounds[self.n / 2 - state.n_marks] as usize
+            (self.n * self.n).div_ceil(2) - self.lower_bounds[self.n / 2 - state.n_marks] as usize
         } else {
             self.n * self.n + 1 - self.lower_bounds[self.n - state.n_marks] as usize
         };
@@ -128,12 +129,12 @@ fn main() {
     let solution = match args.solver {
         SolverChoice::Cabs => {
             let cabs_parameters = CabsParameters::default();
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_cabs(golomob_ruler, parameters, cabs_parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_astar(golomob_ruler, parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
@@ -146,10 +147,10 @@ fn main() {
             .collect::<Vec<_>>();
         let marks_str = marks
             .iter()
-            .map(|i| format!("{}", i))
+            .map(|i| format!("{i}"))
             .collect::<Vec<_>>()
             .join(" ");
-        println!("Marks: {}", marks_str);
+        println!("Marks: {marks_str}");
 
         if golomb_ruler::validate(n, &marks, cost as usize) {
             println!("The solution is valid");

@@ -22,6 +22,7 @@ struct MispState {
 impl Dp for Misp {
     type State = MispState;
     type CostType = i32;
+    type Label = bool;
 
     fn get_target(&self) -> Self::State {
         let mut candidates = FixedBitSet::with_capacity(self.0.n);
@@ -36,7 +37,7 @@ impl Dp for Misp {
     fn get_successors(
         &self,
         state: &Self::State,
-    ) -> impl IntoIterator<Item = (Self::State, Self::CostType, usize)> {
+    ) -> impl IntoIterator<Item = (Self::State, Self::CostType, Self::Label)> {
         if state.candidates.contains(state.current) {
             let mut candidates_exclude = state.candidates.clone();
             candidates_exclude.remove(state.current);
@@ -56,14 +57,14 @@ impl Dp for Misp {
                 current: state.current + 1,
             };
 
-            vec![(successor_include, 1, 0), (successor_exclude, 0, 1)]
+            vec![(successor_include, 1, true), (successor_exclude, 0, false)]
         } else {
             let successor = MispState {
                 candidates: state.candidates.clone(),
                 current: state.current + 1,
             };
 
-            vec![(successor, 0, 1)]
+            vec![(successor, 0, false)]
         }
     }
 
@@ -113,12 +114,12 @@ fn main() {
     let solution = match args.solver {
         SolverChoice::Cabs => {
             let cabs_parameters = CabsParameters::default();
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_cabs(misp, parameters, cabs_parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_astar(misp, parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
@@ -130,13 +131,13 @@ fn main() {
             .transitions
             .iter()
             .enumerate()
-            .filter_map(|(i, &x)| if x == 0 { Some(i) } else { None })
+            .filter_map(|(i, &x)| if x { Some(i) } else { None })
             .collect::<Vec<_>>();
-        println!("Independent set: {:?}", independent_set);
+        println!("Independent set: {independent_set:?}");
 
         if instance.validate(&independent_set) {
             if independent_set.len() != cost as usize {
-                println!("Cost {} != {}", cost, independent_set.len());
+                println!("Cost {cost} != {len}", len = independent_set.len());
                 println!("The solution is invalid.");
             } else {
                 println!("The solution is valid.");

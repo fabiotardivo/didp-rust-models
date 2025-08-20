@@ -1,8 +1,8 @@
 use clap::Parser;
 use dypdl::prelude::*;
 use dypdl_heuristic_search::{
-    create_caasdy, create_dual_bound_cabs, BeamSearchParameters, CabsParameters, FEvaluatorType,
-    Parameters,
+    BeamSearchParameters, CabsParameters, FEvaluatorType, Parameters, create_caasdy,
+    create_dual_bound_cabs,
 };
 use optw::{Args, Instance, RoundedInstance, SolverChoice};
 use rpid::{algorithms, timer::Timer};
@@ -97,7 +97,7 @@ fn main() {
             ),
         );
 
-        model.add_forward_forced_transition(remove).unwrap()
+        model.add_forward_forced_transition(remove).unwrap();
     }
 
     for next in 1..n {
@@ -124,11 +124,11 @@ fn main() {
             );
         }
 
-        model.add_forward_forced_transition(clear).unwrap()
+        model.add_forward_forced_transition(clear).unwrap();
     }
 
     for next in 1..n {
-        let mut visit = Transition::new(format!("{}", next));
+        let mut visit = Transition::new(format!("{next}"));
         visit.set_cost(rounded_instance.profits[next] + IntegerExpression::Cost);
 
         visit.add_effect(unvisited, unvisited.remove(next)).unwrap();
@@ -283,12 +283,12 @@ fn main() {
                 beam_search_parameters,
                 ..Default::default()
             };
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Plus)
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Plus)
         }
@@ -305,11 +305,7 @@ fn main() {
             .filter_map(|t| {
                 let i = t.get_full_name().parse().unwrap();
 
-                if i < n {
-                    Some(i)
-                } else {
-                    None
-                }
+                if i < n { Some(i) } else { None }
             })
             .collect::<Vec<_>>();
         rounded_instance.print_solution(&tour);

@@ -1,8 +1,8 @@
 use clap::Parser;
 use dypdl::prelude::*;
 use dypdl_heuristic_search::{
-    create_caasdy, create_dual_bound_cabs, BeamSearchParameters, CabsParameters, FEvaluatorType,
-    Parameters,
+    BeamSearchParameters, CabsParameters, FEvaluatorType, Parameters, create_caasdy,
+    create_dual_bound_cabs,
 };
 use misp::{Args, Instance, SolverChoice};
 use rpid::timer::Timer;
@@ -90,12 +90,12 @@ fn main() {
                 beam_search_parameters,
                 ..Default::default()
             };
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Plus)
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Plus)
         }
@@ -118,11 +118,11 @@ fn main() {
                 }
             })
             .collect::<Vec<_>>();
-        println!("Independent set: {:?}", independent_set);
+        println!("Independent set: {independent_set:?}");
 
         if instance.validate(&independent_set) {
             if independent_set.len() != cost as usize {
-                println!("Cost {} != {}", cost, independent_set.len());
+                println!("Cost {cost} != {len}", len = independent_set.len());
                 println!("The solution is invalid.");
             } else {
                 println!("The solution is valid.");

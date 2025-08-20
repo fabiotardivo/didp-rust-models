@@ -58,7 +58,7 @@ pub fn transpose(matrix: &[FixedBitSet]) -> Vec<FixedBitSet> {
 
 pub fn validate(matrix: &[FixedBitSet], schedule: &[usize], cost: i32) -> bool {
     if schedule.len() != matrix.len() {
-        println!("Invalid schedule length: {}", schedule.len());
+        println!("Invalid schedule length: {len}", len = schedule.len());
 
         return false;
     }
@@ -70,13 +70,13 @@ pub fn validate(matrix: &[FixedBitSet], schedule: &[usize], cost: i32) -> bool {
 
     for &i in schedule.iter() {
         if i >= matrix.len() {
-            println!("Invalid row index: {}", i);
+            println!("Invalid row index: {i}");
 
             return false;
         }
 
         if produced.contains(i) {
-            println!("Containing row twice: {}", i);
+            println!("Containing row twice: {i}");
 
             return false;
         }
@@ -95,7 +95,7 @@ pub fn validate(matrix: &[FixedBitSet], schedule: &[usize], cost: i32) -> bool {
     }
 
     if recomputed_cost != cost {
-        println!("Invalid cost: {} != {}", cost, recomputed_cost);
+        println!("Invalid cost: {cost} != {recomputed_cost}");
 
         return false;
     }

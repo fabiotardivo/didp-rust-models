@@ -34,7 +34,7 @@ fn main() {
         .enumerate()
         .map(|(i, &c)| {
             model
-                .add_integer_variable(format!("remaining {}", i), c)
+                .add_integer_variable(format!("remaining {i}"), c)
                 .unwrap()
         })
         .collect::<Vec<_>>();
@@ -48,7 +48,7 @@ fn main() {
         .enumerate()
         .map(|(i, ws)| {
             model
-                .add_table_1d(format!("weights {}", i), ws.clone())
+                .add_table_1d(format!("weights {i}"), ws.clone())
                 .unwrap()
         })
         .collect::<Vec<_>>();
@@ -123,7 +123,7 @@ fn main() {
                 .collect::<Vec<_>>();
             ms.reverse();
             ms.push(0.0);
-            let ms = model.add_table_1d(format!("ms {}", j), ms).unwrap();
+            let ms = model.add_table_1d(format!("ms {j}"), ms).unwrap();
             model
                 .add_dual_bound(IntegerExpression::floor(r.max(1) * ms.element(current)))
                 .unwrap();
@@ -153,12 +153,12 @@ fn main() {
                 beam_search_parameters,
                 ..Default::default()
             };
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Plus)
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Plus)
         }

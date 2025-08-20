@@ -44,8 +44,8 @@ impl Instance {
 
         if total_weight > self.capacity {
             println!(
-                "Total weight {} exceeds capacity {}",
-                total_weight, self.capacity
+                "Total weight {total_weight} exceeds capacity {capacity}",
+                capacity = self.capacity
             );
 
             return false;
@@ -54,7 +54,7 @@ impl Instance {
         let recomputed_profit = solution.iter().map(|&i| self.profits[i]).sum::<i32>();
 
         if recomputed_profit != profit {
-            println!("Invalid profit: {} != {}", recomputed_profit, profit);
+            println!("Invalid profit: {profit} != {recomputed_profit}");
 
             return false;
         }
@@ -74,7 +74,7 @@ impl Instance {
             .collect::<Vec<_>>()
             .join(" ");
 
-        println!("Packed Items: {}", solution_indices);
+        println!("Packed Items: {solution_indices}");
     }
 }
 

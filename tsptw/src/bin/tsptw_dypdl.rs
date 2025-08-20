@@ -1,8 +1,8 @@
 use clap::Parser;
 use dypdl::prelude::*;
 use dypdl_heuristic_search::{
-    create_caasdy, create_dual_bound_cabs, BeamSearchParameters, CabsParameters, FEvaluatorType,
-    Parameters,
+    BeamSearchParameters, CabsParameters, FEvaluatorType, Parameters, create_caasdy,
+    create_dual_bound_cabs,
 };
 use rpid::{algorithms, timer::Timer};
 use std::rc::Rc;
@@ -60,7 +60,7 @@ fn main() {
     let connected = model.add_table_2d("connected", connected).unwrap();
 
     for next in 1..n {
-        let mut visit = Transition::new(format!("{}", next));
+        let mut visit = Transition::new(format!("{next}"));
 
         let arrival_time = time + c.element(current, next);
         let start_time = IntegerExpression::max(arrival_time.clone(), instance.a[next]);
@@ -149,12 +149,12 @@ fn main() {
                 beam_search_parameters,
                 ..Default::default()
             };
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Plus)
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Plus)
         }

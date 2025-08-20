@@ -1,8 +1,8 @@
 use clap::Parser;
 use dypdl::prelude::*;
 use dypdl_heuristic_search::{
-    create_caasdy, create_dual_bound_cabs, BeamSearchParameters, CabsParameters, FEvaluatorType,
-    Parameters,
+    BeamSearchParameters, CabsParameters, FEvaluatorType, Parameters, create_caasdy,
+    create_dual_bound_cabs,
 };
 use rpid::timer::Timer;
 use std::rc::Rc;
@@ -43,12 +43,14 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
+    let current_time = model
+        .add_integer_state_function("current_time", processing_times.sum(scheduled))
+        .unwrap();
+
     for (i, &pi) in instance.processing_times.iter().enumerate() {
-        let mut schedule = Transition::new(format!("{}", i));
-        let tardiness = IntegerExpression::max(
-            processing_times.sum(scheduled) + pi - instance.deadlines[i],
-            0,
-        );
+        let mut schedule = Transition::new(format!("{i}"));
+        let tardiness =
+            IntegerExpression::max(current_time.clone() + pi - instance.deadlines[i], 0);
         schedule.set_cost(instance.weights[i] * tardiness + IntegerExpression::Cost);
         schedule.add_effect(scheduled, scheduled.add(i)).unwrap();
         schedule.add_precondition(!scheduled.contains(i));
@@ -85,12 +87,12 @@ fn main() {
                 beam_search_parameters,
                 ..Default::default()
             };
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Plus)
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Plus)
         }
@@ -106,7 +108,7 @@ fn main() {
             .iter()
             .map(|t| t.get_full_name())
             .collect::<Vec<_>>();
-        println!("Schedule: {}", sequence.join(" "));
+        println!("Schedule: {schedule}", schedule = sequence.join(" "));
         let sequence = sequence
             .iter()
             .map(|s| s.parse().unwrap())

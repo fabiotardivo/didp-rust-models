@@ -43,8 +43,8 @@ impl Instance {
 
             if total_weight > self.capacities[j] {
                 println!(
-                    "Total weight {} in dimension {} exceeds capacity {}",
-                    total_weight, j, self.capacities[j]
+                    "Total weight {total_weight} in dimension {j} exceeds capacity {capacity}",
+                    capacity = self.capacities[j]
                 );
 
                 return false;
@@ -54,7 +54,7 @@ impl Instance {
         let recomputed_profit = solution.iter().map(|&i| self.profits[i]).sum::<i32>();
 
         if recomputed_profit != profit {
-            println!("Invalid profit: {} != {}", recomputed_profit, profit);
+            println!("Invalid profit: {profit} != {recomputed_profit}");
 
             return false;
         }

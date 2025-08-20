@@ -1,8 +1,8 @@
 use clap::Parser;
 use dypdl::prelude::*;
 use dypdl_heuristic_search::{
-    create_caasdy, create_dual_bound_cabs, BeamSearchParameters, CabsParameters, FEvaluatorType,
-    Parameters,
+    BeamSearchParameters, CabsParameters, FEvaluatorType, Parameters, create_caasdy,
+    create_dual_bound_cabs,
 };
 use fixedbitset::FixedBitSet;
 use mosp::{self, Args, SolverChoice};
@@ -47,11 +47,14 @@ fn main() {
     let opened = vec![];
     let opened = model.create_set(customer, &opened).unwrap();
     let opened = model.add_set_variable("opened", customer, opened).unwrap();
+    let opened_and_remaining = model
+        .add_set_state_function("opened_and_remaining", opened & remaining)
+        .unwrap();
 
     for (i, neighbors) in column_neighbors.iter().enumerate() {
-        let mut close = Transition::new(format!("{}", i));
+        let mut close = Transition::new(format!("{i}"));
         close.set_cost(IntegerExpression::max(
-            ((opened & remaining) | (neighbors.clone() - opened)).len(),
+            (opened_and_remaining.clone() | (neighbors.clone() - opened)).len(),
             IntegerExpression::Cost,
         ));
         close.add_effect(remaining, remaining.remove(i)).unwrap();
@@ -84,12 +87,12 @@ fn main() {
                 beam_search_parameters,
                 ..Default::default()
             };
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Max)
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Max)
         }
@@ -115,8 +118,8 @@ fn main() {
             }
         }
         println!(
-            "Schedule: {}",
-            sequence
+            "Schedule: {schedule}",
+            schedule = sequence
                 .iter()
                 .map(|i| i.to_string())
                 .collect::<Vec<_>>()

@@ -1,8 +1,8 @@
 use clap::Parser;
 use dypdl::prelude::*;
 use dypdl_heuristic_search::{
-    create_caasdy, create_dual_bound_cabs, BeamSearchParameters, CabsParameters, FEvaluatorType,
-    Parameters,
+    BeamSearchParameters, CabsParameters, FEvaluatorType, Parameters, create_caasdy,
+    create_dual_bound_cabs,
 };
 use rpid::timer::Timer;
 use salbp_1::{Args, Instance, SolverChoice};
@@ -45,7 +45,7 @@ fn main() {
         .collect::<Vec<_>>();
 
     for (i, &wi) in instance.task_times.iter().enumerate() {
-        let mut schedule = Transition::new(format!("{}", i));
+        let mut schedule = Transition::new(format!("{i}"));
         schedule.set_cost(IntegerExpression::Cost);
 
         schedule.add_effect(remaining, remaining - wi).unwrap();
@@ -64,7 +64,7 @@ fn main() {
         model.add_forward_transition(schedule).unwrap();
     }
 
-    let mut open = Transition::new(format!("{}", n));
+    let mut open = Transition::new(format!("{n}"));
     open.set_cost(1 + IntegerExpression::Cost);
     open.add_effect(remaining, instance.cycle_time).unwrap();
 
@@ -161,12 +161,12 @@ fn main() {
                 beam_search_parameters,
                 ..Default::default()
             };
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Plus)
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Plus)
         }
@@ -182,11 +182,7 @@ fn main() {
             .iter()
             .filter_map(|t| {
                 let i = t.get_full_name().parse().unwrap();
-                if i < n {
-                    Some(i)
-                } else {
-                    None
-                }
+                if i < n { Some(i) } else { None }
             })
             .collect::<Vec<_>>();
         instance.print_solution(&sequence);

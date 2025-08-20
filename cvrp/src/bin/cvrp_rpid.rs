@@ -63,6 +63,7 @@ impl Cvrp {
 impl Dp for Cvrp {
     type State = CvrpState;
     type CostType = i32;
+    type Label = usize;
 
     fn get_target(&self) -> Self::State {
         let depot = self.instance.depot;
@@ -81,7 +82,7 @@ impl Dp for Cvrp {
     fn get_successors(
         &self,
         state: &Self::State,
-    ) -> impl IntoIterator<Item = (Self::State, Self::CostType, usize)> {
+    ) -> impl IntoIterator<Item = (Self::State, Self::CostType, Self::Label)> {
         let mut successors = state
             .unvisited
             .ones()
@@ -197,7 +198,7 @@ fn main() {
     let args = Args::parse();
 
     let filepath = args.input_file;
-    let filename = filepath.split('/').last().unwrap();
+    let filename = filepath.split('/').next_back().unwrap();
 
     let re = Regex::new(r".+k(\d+).+").unwrap();
     let n_vehicles = re.captures(filename).unwrap()[1].parse().unwrap();
@@ -217,13 +218,13 @@ fn main() {
     };
     let solution = match args.solver {
         SolverChoice::Cabs => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let cabs_parameters = CabsParameters::default();
             let mut solver = solvers::create_cabs(cvrp, parameters, cabs_parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_astar(cvrp, parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }

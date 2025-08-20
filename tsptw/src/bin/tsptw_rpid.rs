@@ -65,8 +65,9 @@ impl Tsptw {
 impl Dp for Tsptw {
     type State = TsptwState;
     type CostType = i32;
+    type Label = usize;
 
-    fn get_target(&self) -> TsptwState {
+    fn get_target(&self) -> Self::State {
         let mut unvisited = FixedBitSet::with_capacity(self.instance.a.len());
         unvisited.insert_range(1..);
 
@@ -79,8 +80,8 @@ impl Dp for Tsptw {
 
     fn get_successors(
         &self,
-        state: &TsptwState,
-    ) -> impl IntoIterator<Item = (TsptwState, i32, usize)> {
+        state: &Self::State,
+    ) -> impl IntoIterator<Item = (Self::State, Self::CostType, Self::Label)> {
         state.unvisited.ones().filter_map(|next| {
             if let Some(distance) = self.instance.c[state.current][next] {
                 let time = cmp::max(state.time + distance, self.instance.a[next]);
@@ -115,7 +116,7 @@ impl Dp for Tsptw {
         })
     }
 
-    fn get_base_cost(&self, state: &TsptwState) -> Option<i32> {
+    fn get_base_cost(&self, state: &Self::State) -> Option<Self::CostType> {
         if state.unvisited.is_clear() {
             self.instance.c[state.current][0]
         } else {
@@ -128,11 +129,11 @@ impl Dominance for Tsptw {
     type State = TsptwState;
     type Key = (FixedBitSet, usize);
 
-    fn get_key(&self, state: &TsptwState) -> Self::Key {
+    fn get_key(&self, state: &Self::State) -> Self::Key {
         (state.unvisited.clone(), state.current)
     }
 
-    fn compare(&self, a: &TsptwState, b: &Self::State) -> Option<Ordering> {
+    fn compare(&self, a: &Self::State, b: &Self::State) -> Option<Ordering> {
         Some(b.time.cmp(&a.time))
     }
 }
@@ -179,12 +180,15 @@ fn main() {
     let solution = match args.solver {
         SolverChoice::Cabs => {
             let cabs_parameters = CabsParameters::default();
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!(
+                "Preparing time: time{time}s",
+                time = timer.get_elapsed_time()
+            );
             let mut solver = solvers::create_cabs(tsptw, parameters, cabs_parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
         SolverChoice::Astar => {
-            println!("Preparing time: {}s", timer.get_elapsed_time());
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
             let mut solver = solvers::create_astar(tsptw, parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
@@ -195,10 +199,10 @@ fn main() {
         let transitions = solution
             .transitions
             .iter()
-            .map(|t| format!("{}", t))
+            .map(|t| format!("{t}"))
             .collect::<Vec<_>>()
             .join(" ");
-        println!("Tour: {}", transitions);
+        println!("Tour: {transitions}");
 
         if (args.minimize_makespan && instance.validate_makespan(&solution.transitions, cost))
             || instance.validate(&solution.transitions, cost)

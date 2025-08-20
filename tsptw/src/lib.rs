@@ -45,7 +45,7 @@ impl Instance {
 
     fn validate_inner(&self, tour: &[usize], cost: i32, minimize_makespan: bool) -> bool {
         if tour.len() != self.a.len() - 1 {
-            println!("Invalid tour length: {}", tour.len());
+            println!("Invalid tour length: {len}", len = tour.len());
 
             return false;
         }
@@ -57,13 +57,13 @@ impl Instance {
 
         for &next in tour.iter().chain(std::iter::once(&0)) {
             if next >= self.a.len() {
-                println!("Invalid node index: {}", next);
+                println!("Invalid node index: {next}");
 
                 return false;
             }
 
             if visited[next] {
-                println!("Visited node twice: {}", next);
+                println!("Visited node twice: {next}");
 
                 return false;
             }
@@ -72,13 +72,13 @@ impl Instance {
                 time = cmp::max(time + distance, self.a[next]);
                 recomputed_cost += distance;
             } else {
-                println!("Invalid edge: {} -> {}", current, next);
+                println!("Invalid edge: {current} -> {next}");
 
                 return false;
             }
 
             if time > self.b[next] {
-                println!("Time window violation: {} at {}", next, time);
+                println!("Time window violation: {next} at {time}");
 
                 return false;
             }
@@ -89,12 +89,12 @@ impl Instance {
 
         if minimize_makespan {
             if cost != time {
-                println!("Invalid makespan: {} != {}", cost, time);
+                println!("Invalid makespan: {cost} != {time}");
 
                 return false;
             }
         } else if cost != recomputed_cost {
-            println!("Invalid cost: {} != {}", cost, recomputed_cost);
+            println!("Invalid cost: {cost} != {recomputed_cost}");
 
             return false;
         }
