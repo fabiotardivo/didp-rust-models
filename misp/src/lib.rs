@@ -19,6 +19,9 @@ impl Instance {
 
         for line in lines {
             let line = line?;
+            if line.is_empty() {
+                continue;
+            }            
             let mut digits = line.split_whitespace();
             let line_type = digits.next().ok_or("failed to parse the line type")?;
 
