@@ -49,6 +49,7 @@ pub fn validate(n: usize, marks: &[usize], length: usize) -> bool {
 pub enum SolverChoice {
     Cabs,
     Astar,
+    Cahdbs2,
 }
 
 #[derive(Debug, Parser)]
@@ -61,4 +62,8 @@ pub struct Args {
     pub history: String,
     #[arg(short, long, default_value_t = 1800.0, help = "Time limit")]
     pub time_limit: f64,
+    #[arg(long, default_value_t = 4, help = "Number of threads (cahdbs2 only)")]
+    pub threads: usize,
+    #[arg(long, default_value_t = 32, help = "Initial beam size")]
+    pub initial_beam_size: usize,
 }
