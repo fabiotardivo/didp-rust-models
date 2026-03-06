@@ -123,6 +123,10 @@ fn main() {
             let mut solver = solvers::create_astar(misp, parameters);
             io::run_solver_and_dump_solution_history(&mut solver, &args.history).unwrap()
         }
+        SolverChoice::Cahdbs2 => {
+            eprintln!("error: cahdbs2 is not supported in the RPID solver, use the dypdl binary instead");
+            std::process::exit(1);
+        }
     };
     io::print_solution_statistics(&solution);
 

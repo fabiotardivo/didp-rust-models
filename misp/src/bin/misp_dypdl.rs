@@ -2,11 +2,12 @@ use clap::Parser;
 use dypdl::prelude::*;
 use dypdl_heuristic_search::{
     BeamSearchParameters, CabsParameters, FEvaluatorType, Parameters, create_caasdy,
-    create_dual_bound_cabs,
+    create_dual_bound_cabs, create_dual_bound_cahdbs2
 };
 use misp::{Args, Instance, SolverChoice};
 use rpid::timer::Timer;
 use std::rc::Rc;
+use std::sync::Arc;
 
 #[cfg(not(target_env = "msvc"))]
 use tikv_jemallocator::Jemalloc;
@@ -73,8 +74,6 @@ fn main() {
 
     model.add_dual_bound(candidates.len()).unwrap();
 
-    let model = Rc::new(model);
-
     let parameters = Parameters::<i32> {
         time_limit: Some(args.time_limit),
         ..Default::default()
@@ -82,6 +81,7 @@ fn main() {
 
     let mut solver = match args.solver {
         SolverChoice::Cabs => {
+            let model = Rc::new(model);
             let beam_search_parameters = BeamSearchParameters {
                 parameters,
                 ..Default::default()
@@ -95,9 +95,24 @@ fn main() {
             create_dual_bound_cabs(model, parameters, FEvaluatorType::Plus)
         }
         SolverChoice::Astar => {
+            let model = Rc::new(model);
             println!("Preparing time: {time}s", time = timer.get_elapsed_time());
 
             create_caasdy(model, parameters, FEvaluatorType::Plus)
+        }
+        SolverChoice::Cahdbs2 => {
+            let model = Arc::new(model);
+            let beam_search_parameters = BeamSearchParameters {
+                beam_size: args.initial_beam_size,
+                parameters,
+                ..Default::default()
+            };
+            let parameters = CabsParameters {
+                beam_search_parameters,
+                ..Default::default()
+            };
+            println!("Preparing time: {time}s", time = timer.get_elapsed_time());
+            create_dual_bound_cahdbs2(model, parameters, FEvaluatorType::Plus, args.threads)
         }
     };
 
