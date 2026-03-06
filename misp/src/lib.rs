@@ -56,7 +56,7 @@ impl Instance {
                     adjacency_list[u - 1].push(v - 1);
                     adjacency_list[v - 1].push(u - 1);
                 }
-                _ => return Err("invalid line type".into()),
+                _ => continue,  // skip unrecognized lines instead of crashing
             }
         }
 
